@@ -1,0 +1,40 @@
+# Windows:
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+dist
+build
+
+# My configurations:
+db.ini
+deploy_key_rsa
+
+#java
+*.class
+*.classpath
+*.project
+*.settings
+.classpath
+.project
+.factorypath
+target/
+*classpath
+bin
+
+#Intellij
+.idea/
+*.iml
+*/*.iml
+logs
+download
+*.springBeans
+/ma-console-quartz.zip
+disconf
+console.log.path_IS_UNDEFINED
+*/config
