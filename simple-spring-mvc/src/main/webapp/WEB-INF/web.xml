@@ -4,4 +4,17 @@
 
 <web-app>
     <display-name>Archetype Created Web Application</display-name>
+    <servlet>
+        <servlet-name>v1</servlet-name>
+        <servlet-class>com.xych.simple.spring.mvc.framework.v1.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>application.properties</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>v1</servlet-name>
+        <url-pattern>/mvc/v1</url-pattern>
+    </servlet-mapping>
 </web-app>
