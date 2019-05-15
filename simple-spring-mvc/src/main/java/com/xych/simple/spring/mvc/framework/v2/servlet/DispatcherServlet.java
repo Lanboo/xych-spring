@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,17 @@ public class DispatcherServlet extends HttpServlet {
         doPost(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            doDispatch(req, resp);
+        }
+        catch(Exception e) {
+            resp.getWriter().write("500 Exception " + Arrays.toString(e.getStackTrace()));
+        }
+    }
+    
+    private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        
     }
 
     @Override
