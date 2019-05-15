@@ -3,9 +3,11 @@ package com.xych.simple.spring.mvc.framework.v1.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.xych.simple.spring.mvc.framework.annotation.Autowired;
 import com.xych.simple.spring.mvc.framework.annotation.Component;
 import com.xych.simple.spring.mvc.framework.annotation.Controller;
 import com.xych.simple.spring.mvc.framework.annotation.RequestMapping;
@@ -34,7 +37,40 @@ public class DispatcherServlet extends HttpServlet {
         doPost(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            doDispatch(req, resp);
+        }
+        catch(Exception e) {
+            resp.getWriter().write("500 Exception " + Arrays.toString(e.getStackTrace()));
+        }
+    }
+
+    private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        String url = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        url = url.replace(contextPath, "").replaceAll("/+", "/");
+        if(!this.mapping.containsKey(url)) {
+            resp.getWriter().write("404 Not Found!!");
+            return;
+        }
+        Method method = (Method) this.mapping.get(url);
+        Class<?> beanClass = method.getDeclaringClass();
+        if(!beanClass.isAnnotationPresent(Controller.class)) {
+            resp.getWriter().write("500 method mapping error");
+            return;
+        }
+        String beanName = beanClass.getAnnotation(Controller.class).value();
+        beanName = StrUtils.getStr(beanName, beanClass.getName());
+        Object obj = this.mapping.get(beanName);
+        if(obj == null) {
+            resp.getWriter().write("500 not find object");
+            return;
+        }
+        // 此处对参数未处理
+        @SuppressWarnings("unchecked")
+        Map<String, String[]> params = req.getParameterMap();
+        method.invoke(obj, new Object[] { req, resp, params.get("name")[0] });
     }
 
     @Override
@@ -80,11 +116,40 @@ public class DispatcherServlet extends HttpServlet {
                     this.mapping.put(beanName, clazz.newInstance());
                 }
             }
+            for(Object obj : mapping.values()) {
+                if(obj == null) {
+                    continue;
+                }
+                Class<?> clazz = obj.getClass();
+                if(clazz.isAnnotationPresent(Controller.class) || clazz.isAnnotationPresent(Component.class) || clazz.isAnnotationPresent(Service.class)) {
+                    Field[] fields = clazz.getDeclaredFields();
+                    for(Field field : fields) {
+                        if(!field.isAnnotationPresent(Autowired.class)) {
+                            continue;
+                        }
+                        String beanName = field.getAnnotation(Autowired.class).value();
+                        if(beanName == null || "".equals(beanName)) {
+                            beanName = field.getType().getName();
+                        }
+                        field.setAccessible(true);
+                        field.set(obj, mapping.get(beanName));
+                        log.info("set {}.{} by {}", clazz.getName(), field.getName(), beanName);
+                    }
+                }
+            }
         }
         catch(Exception e) {
             log.error("error", e);
         }
         finally {
+            if(is != null) {
+                try {
+                    is.close();
+                }
+                catch(IOException e) {
+                    log.error("io close error", e);
+                }
+            }
         }
     }
 
