@@ -101,6 +101,7 @@ public class DispatcherServlet extends HttpServlet {
             // 其他类型参数不处理
             throw new RuntimeException("param tpye is not supported");
         }
+        method.invoke(bean, params);
     }
 
     @Override
