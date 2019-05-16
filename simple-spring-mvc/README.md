@@ -1,0 +1,1 @@
+![](etc/simple-spring-mvc.png)
