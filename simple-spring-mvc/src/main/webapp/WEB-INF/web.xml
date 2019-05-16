@@ -13,21 +13,39 @@
     <!-- </init-param> -->
     <!-- <load-on-startup>1</load-on-startup> -->
     <!-- </servlet> -->
+
+    <!-- <servlet> -->
+    <!-- <servlet-name>v2.DispatcherServlet</servlet-name> -->
+    <!-- <servlet-class>com.xych.simple.spring.mvc.framework.v2.servlet.DispatcherServlet</servlet-class> -->
+    <!-- <init-param> -->
+    <!-- <param-name>contextConfigLocation</param-name> -->
+    <!-- <param-value>application.properties</param-value> -->
+    <!-- </init-param> -->
+    <!-- <load-on-startup>1</load-on-startup> -->
+    <!-- </servlet> -->
+
     <servlet>
-        <servlet-name>v2.DispatcherServlet</servlet-name>
-        <servlet-class>com.xych.simple.spring.mvc.framework.v2.servlet.DispatcherServlet</servlet-class>
+        <servlet-name>v3.DispatcherServlet</servlet-name>
+        <servlet-class>com.xych.simple.spring.mvc.framework.v3.servlet.DispatcherServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
             <param-value>application.properties</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+
     <!-- <servlet-mapping> -->
     <!-- <servlet-name>v1.DispatcherServlet</servlet-name> -->
     <!-- <url-pattern>/v1/*</url-pattern> -->
     <!-- </servlet-mapping> -->
+
+    <!-- <servlet-mapping> -->
+    <!-- <servlet-name>v2.DispatcherServlet</servlet-name> -->
+    <!-- <url-pattern>/v2/*</url-pattern> -->
+    <!-- </servlet-mapping> -->
+
     <servlet-mapping>
-        <servlet-name>v2.DispatcherServlet</servlet-name>
-        <url-pattern>/v2/*</url-pattern>
+        <servlet-name>v3.DispatcherServlet</servlet-name>
+        <url-pattern>/v3/*</url-pattern>
     </servlet-mapping>
 </web-app>
