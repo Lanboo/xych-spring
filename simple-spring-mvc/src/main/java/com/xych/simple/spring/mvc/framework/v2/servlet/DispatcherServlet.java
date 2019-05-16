@@ -3,6 +3,7 @@ package com.xych.simple.spring.mvc.framework.v2.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -22,6 +23,7 @@ import com.xych.simple.spring.mvc.framework.annotation.Autowired;
 import com.xych.simple.spring.mvc.framework.annotation.Component;
 import com.xych.simple.spring.mvc.framework.annotation.Controller;
 import com.xych.simple.spring.mvc.framework.annotation.RequestMapping;
+import com.xych.simple.spring.mvc.framework.annotation.RequestParam;
 import com.xych.simple.spring.mvc.framework.annotation.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +50,57 @@ public class DispatcherServlet extends HttpServlet {
             resp.getWriter().write("500 Exception " + Arrays.toString(e.getStackTrace()));
         }
     }
-    
+
     private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        
+        String url = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        url = url.replace(contextPath, "").replaceAll("/+", "/");
+        if(!this.handlerMapping.containsKey(url)) {
+            resp.getWriter().write("404 Not Found!!");
+            return;
+        }
+        Method method = this.handlerMapping.get(url);
+        Class<?> beanClass = method.getDeclaringClass();
+        String beanName = beanClass.getAnnotation(Controller.class).value();
+        beanName = getBeanName(beanName, beanClass);
+        Object bean = this.ioc.get(beanName);
+        if(bean == null) {
+            resp.getWriter().write("500 not find object");
+            return;
+        }
+        // 根据方法参数列表，组装参数数组
+        // 不处理复杂参数
+        Class<?>[] paramTypes = method.getParameterTypes();
+        Object[] params = new Object[paramTypes.length];
+        Annotation[][] paramsAnnotations = method.getParameterAnnotations();
+        for(int i = 0, len = paramTypes.length; i < len; i++) {
+            Class<?> paramType = paramTypes[i];
+            if(HttpServletRequest.class.isAssignableFrom(paramType)) {
+                params[i] = req;
+                continue;
+            }
+            if(HttpServletResponse.class.isAssignableFrom(paramType)) {
+                params[i] = resp;
+                continue;
+            }
+            if(paramType == String.class) {
+                Annotation[] annotations = paramsAnnotations[i];
+                for(Annotation annotation : annotations) {
+                    if(annotation instanceof RequestParam) {
+                        String paramName = ((RequestParam) annotation).value();
+                        if(paramName == null || paramName.length() == 0) {
+                            throw new RuntimeException("param is not @RequestParam");
+                        }
+                        // 此处偷懒了
+                        String value = req.getParameter(paramName);
+                        params[i] = value;
+                    }
+                }
+                continue;
+            }
+            // 其他类型参数不处理
+            throw new RuntimeException("param tpye is not supported");
+        }
     }
 
     @Override
